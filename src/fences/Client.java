@@ -13,6 +13,11 @@ import json.JSONObject;
 import json.JSONArray;
 import json.parser.JSONParser;
 
+/**
+ * A <code>Client</code> is the basic object for interaction with the Fences API.
+ * Use it to send requests and retrieve the information provided by the server.
+ * @author Jakob Danckwerts
+ */
 public class Client {
 	private HttpClient client;
 	private String parentURL;
@@ -76,6 +81,10 @@ public class Client {
 		System.out.println(t);
 	}
 	
+	/**
+	 * Initialises a <code>Client</code> object that communicates with the API server at the given location.
+	 * @author Jakob Danckwerts
+	 */
 	public Client(String ipAddress, String port) throws IOException, InterruptedException {
 		this.parentURL = "http://" + ipAddress + ":" + port + "/fences";
 		this.client = HttpClient.newHttpClient();
@@ -89,6 +98,10 @@ public class Client {
 		return this.parentURL;
 	}
 	
+	/**
+	 * Fetches all publicly visible games.
+	 * @author Jakob Danckwerts
+	 */
 	public Result<ArrayList<Game>> getPublicGames() {
 		try {
 			HttpRequest request = HttpRequest.newBuilder()
@@ -147,6 +160,10 @@ public class Client {
 		}
 	}
 	
+	/**
+	 * Fetches a single game which is identified by the given number.
+	 * @author Jakob Danckwerts
+	 */
 	public Result<Game> getGame(long gameID) {
 		try {
 			HttpRequest request = HttpRequest.newBuilder()
@@ -206,6 +223,10 @@ public class Client {
 		}
 	}
 	
+	/**
+	 * Requests to create a new game.
+	 * @author Jakob Danckwerts
+	 */
 	public Result<Game> createGame() {
 		try {
 			HttpRequest request = HttpRequest.newBuilder()
@@ -247,6 +268,10 @@ public class Client {
 		}
 	}
 	
+	/**
+	 * Fetches a single player which is identified by the given number.
+	 * @author Jakob Danckwerts
+	 */
 	public Result<Player> getPlayer(long playerID) {
 		try {
 			HttpRequest request = HttpRequest.newBuilder()
@@ -293,7 +318,9 @@ public class Client {
 	}
 	
 	/**
-	 * Only URL-friendly characters are allowed, like letters, numbers, dashes, underscores etc.
+	 * Requests to create a new player with the given name.<br>
+	 * Please note that only URL-friendly characters are allowed, e.g. letters, numbers, dashes, and underscores.
+	 * @author Jakob Danckwerts
 	 */
 	public Result<Player> createPlayer(String name) {
 		try {
@@ -336,6 +363,10 @@ public class Client {
 		}
 	}
 	
+	/**
+	 * Requests that a specific player, identified by <code>playerID</code>, joins a specific game, identified by <code>gameID</code>.
+	 * @author Jakob Danckwerts
+	 */
 	public Result<JoinResult> joinGame(long gameID, long playerID) {
 		try {
 			HttpRequest request = HttpRequest.newBuilder()
@@ -382,6 +413,10 @@ public class Client {
 		}
 	}
 	
+	/**
+	 * Requests that the player identified by the given number joins an available game.
+	 * @author Jakob Danckwerts
+	 */
 	public Result<JoinResult> findGame(long playerID) {
 		try {
 			HttpRequest request = HttpRequest.newBuilder()
@@ -427,7 +462,16 @@ public class Client {
 			return new Result<JoinResult>(APIStatus.error);
 		}
 	}
-
+	
+	/**
+	 * Requests that the player identified by <code>playerID</code> makes a turn in the game identified by <code>gameID</code>.<br>
+	 * The board coordinates of the turn, i.e. where to place the fence, are given by
+	 * <code>y</code> which identifies the row (counting from the top) and
+	 * <code>x</code> which identifies the position inside the row (counting from the left side).<br>
+	 * Please note that each small row is regarded as an extension of the big one above, so their <code>y</code> values are equal and the
+	 * <code>x</code> values continuously count from one to (2*width)-1.
+	 * @author Jakob Danckwerts
+	 */
 	public Result<TurnResult> makeTurn(long gameID, long playerID, long x, long y) {
 		try {
 			HttpRequest request = HttpRequest.newBuilder()
