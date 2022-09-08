@@ -161,7 +161,7 @@ public class Client {
 	}
 	
 	/**
-	 * Fetches a single game which is identified by the given number.
+	 * Fetches a single game which is identified by the given ID number.
 	 * @author Jakob Danckwerts
 	 */
 	public Result<Game> getGame(long gameID) {
@@ -269,7 +269,7 @@ public class Client {
 	}
 	
 	/**
-	 * Fetches a single player which is identified by the given number.
+	 * Fetches a single player which is identified by the given ID number.
 	 * @author Jakob Danckwerts
 	 */
 	public Result<Player> getPlayer(long playerID) {
@@ -414,7 +414,7 @@ public class Client {
 	}
 	
 	/**
-	 * Requests that the player identified by the given number joins an available game.
+	 * Requests that the player identified by the given ID number joins an available game.
 	 * @author Jakob Danckwerts
 	 */
 	public Result<JoinResult> findGame(long playerID) {
