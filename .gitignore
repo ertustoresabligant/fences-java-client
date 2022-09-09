@@ -2,4 +2,6 @@
 src/.DS_Store
 src/fences/.DS_Store
 src/json/.DS_Store
+.classpath
+.project
 bin/
