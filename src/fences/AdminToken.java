@@ -14,7 +14,7 @@ public class AdminToken {
 	}
 	
 	public String toString() {
-		return "AdminToken_" + sessionID;
+		return "AdminToken " + sessionID;
 	}
 	
 	/**
