@@ -545,7 +545,7 @@ public class Client {
 	 * @see fences.AdminToken
 	 * @see fences.Client#createToken(String)
 	 */
-	public Result<Game> getAllGames(AdminToken token, long gameID) {
+	public Result<Game> deleteGame(AdminToken token, long gameID) {
 		try {
 			HttpRequest request = HttpRequest.newBuilder()
 					.uri(URI.create(this.parentURL + "/game/delete?gameID=" + gameID + "&sessionID=" + token.sessionID + "&key=" + token.token))
