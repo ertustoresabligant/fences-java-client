@@ -5,3 +5,4 @@ src/json/.DS_Store
 .classpath
 .project
 bin/
+src/test/
