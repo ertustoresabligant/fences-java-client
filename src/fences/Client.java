@@ -1,9 +1,13 @@
 package fences;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-
+import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpClient.Redirect;
+import java.net.http.HttpConnectTimeoutException;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
@@ -11,6 +15,7 @@ import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.X509EncodedKeySpec;
+import java.time.Duration;
 import java.util.ArrayList;
 
 import javax.crypto.Cipher;
@@ -51,6 +56,58 @@ public class Client {
 	
 	protected String parentURL() {
 		return this.parentURL;
+	}
+	
+	public static void searchServer(String port) throws IOException, InterruptedException {
+		new ProcessBuilder("arp", "-an").start().waitFor();
+		
+		Process p = Runtime.getRuntime().exec("arp -an");
+		p.waitFor();
+		BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+		ArrayList<String> addresses = new ArrayList<>();
+		String line;
+		while((line = br.readLine()) != null) {
+			if(line.matches("\\? \\([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+\\) at [A-Za-z0-9]+\\:[A-Za-z0-9]+\\:[A-Za-z0-9]+\\:[A-Za-z0-9]+\\:[A-Za-z0-9]+\\:[A-Za-z0-9]+ on .*")) {
+				addresses.add(line.split("[\\(\\)]")[1]);
+			}
+		}
+		System.out.println(addresses);
+		
+		String bestAddress = null;
+		Version bestVersion = null;
+		for(String address : addresses) {
+			try {
+				HttpClient c = HttpClient.newBuilder()
+						.followRedirects(Redirect.NEVER)
+						.connectTimeout(Duration.ofMillis(1000))
+						.build();
+				String url = "http://" + address + ":" + port + "/fences-server-search";
+				HttpRequest request = HttpRequest.newBuilder()
+						.uri(URI.create(url))
+						.build();
+				HttpResponse<String> response = c.send(request, BodyHandlers.ofString());
+				System.out.println(address + ": success");
+				System.out.println(response.statusCode());
+				System.out.println(response.body());
+				
+				String body = response.body();
+				if(body.matches("v[0-9]+\\.[0-9]+\\.[0-9]+")) {
+					String[] numbers = body.substring(1).split("\\.");
+					Version version = new Version(Integer.parseInt(numbers[0]), Integer.parseInt(numbers[1]), Integer.parseInt(numbers[2]));
+					if(bestVersion == null || version.compareTo(bestVersion) > 0) {
+						bestAddress = address;
+						bestVersion = version;
+					}
+				}
+			} catch(HttpConnectTimeoutException e) {
+				System.out.println(address + ": timeout");
+			} catch(Exception e) {
+				System.out.println(address + ": error");
+			}
+		}
+		
+		System.out.println(bestAddress);
+		System.out.println(bestVersion);
 	}
 	
 	/**
