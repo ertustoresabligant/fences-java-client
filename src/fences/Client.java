@@ -21,7 +21,8 @@ import json.parser.JSONParser;
 
 /**
  * A <code>Client</code> is the basic object for interaction with the Fences API.
- * Use it to send requests and retrieve the information provided by the server.
+ * Use it to send requests and retrieve the information provided by the server.<br>
+ * For further information and documentation, see <a href="https://jaleda.notion.site/Fences-Server-7d2ee9990cfe405790bb789f5dce7f7f">this</a> and <a href="https://tinyurl.com/5t4fburh">this</a>.
  * @author Jakob Danckwerts
  */
 public class Client {
