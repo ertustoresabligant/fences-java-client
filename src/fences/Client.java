@@ -63,7 +63,7 @@ public class Client {
 	 * Attempts to find a running Fences API server in the local network. Returns the retrieved IP address or <code>null</code> if none is found.<br><br>
 	 * <b>Please note: </b>Depending on the number of possibly available devices, this function might take a long time to run and return.<br>
 	 * The parameter <code>hurry</code> results in returning the first available server option,
-	 * which on one hand might drastically reduce the function's running time
+	 * which on one hand might reduce the function's running time
 	 * while it on the other hand can lead to using an outdated server that is not running the latest API version.
 	 * @author Jakob Danckwerts
 	 */
