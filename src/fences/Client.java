@@ -1,18 +1,15 @@
 package fences;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
-import java.security.spec.X509EncodedKeySpec;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,6 +17,10 @@ import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
 
 import javax.crypto.Cipher;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.X509EncodedKeySpec;
 
 import json.JSONObject;
 import json.JSONArray;
