@@ -3,11 +3,9 @@ package fences;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.InetAddress;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
-import java.net.http.HttpConnectTimeoutException;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
@@ -17,6 +15,9 @@ import java.security.PublicKey;
 import java.security.spec.X509EncodedKeySpec;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map.Entry;
+import java.util.concurrent.CompletableFuture;
 
 import javax.crypto.Cipher;
 
@@ -58,25 +59,27 @@ public class Client {
 		return this.parentURL;
 	}
 	
-	public static void searchServer(String port) throws IOException, InterruptedException {
-		new ProcessBuilder("arp", "-an").start().waitFor();
+	/**
+	 * Attempts to find a running Fences API server in the local network. Returns the retrieved IP address or <code>null</code> if none is found.<br><br>
+	 * <b>Please note: </b>Depending on the number of possibly available devices, this function might take a long time to run and return.<br>
+	 * The parameter <code>hurry</code> results in returning the first available server option,
+	 * which on one hand might drastically reduce the function's running time
+	 * while it on the other hand can lead to using an outdated server that is not running the latest API version.
+	 * @author Jakob Danckwerts
+	 */
+	public static String searchServer(String port, boolean hurry) throws IOException, InterruptedException {
+		new ProcessBuilder("ping", "255.255.255.255", "-t 1").start().waitFor();
 		
-		Process p = Runtime.getRuntime().exec("arp -an");
+		Process p = new ProcessBuilder("arp", "-an").start();
 		p.waitFor();
+		
 		BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-		ArrayList<String> addresses = new ArrayList<>();
+		HashMap<String, CompletableFuture<HttpResponse<String>>> requests = new HashMap<>();
 		String line;
 		while((line = br.readLine()) != null) {
 			if(line.matches("\\? \\([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+\\) at [A-Za-z0-9]+\\:[A-Za-z0-9]+\\:[A-Za-z0-9]+\\:[A-Za-z0-9]+\\:[A-Za-z0-9]+\\:[A-Za-z0-9]+ on .*")) {
-				addresses.add(line.split("[\\(\\)]")[1]);
-			}
-		}
-		System.out.println(addresses);
-		
-		String bestAddress = null;
-		Version bestVersion = null;
-		for(String address : addresses) {
-			try {
+				String address = line.split("[\\(\\)]")[1];
+				
 				HttpClient c = HttpClient.newBuilder()
 						.followRedirects(Redirect.NEVER)
 						.connectTimeout(Duration.ofMillis(1000))
@@ -85,29 +88,34 @@ public class Client {
 				HttpRequest request = HttpRequest.newBuilder()
 						.uri(URI.create(url))
 						.build();
-				HttpResponse<String> response = c.send(request, BodyHandlers.ofString());
-				System.out.println(address + ": success");
-				System.out.println(response.statusCode());
-				System.out.println(response.body());
 				
-				String body = response.body();
-				if(body.matches("v[0-9]+\\.[0-9]+\\.[0-9]+")) {
-					String[] numbers = body.substring(1).split("\\.");
-					Version version = new Version(Integer.parseInt(numbers[0]), Integer.parseInt(numbers[1]), Integer.parseInt(numbers[2]));
-					if(bestVersion == null || version.compareTo(bestVersion) > 0) {
-						bestAddress = address;
-						bestVersion = version;
-					}
-				}
-			} catch(HttpConnectTimeoutException e) {
-				System.out.println(address + ": timeout");
-			} catch(Exception e) {
-				System.out.println(address + ": error");
+				requests.put(address, c.sendAsync(request, BodyHandlers.ofString()));
 			}
 		}
 		
-		System.out.println(bestAddress);
-		System.out.println(bestVersion);
+		String bestAddress = null;
+		Version bestVersion = null;
+		for(Entry<String, CompletableFuture<HttpResponse<String>>> entry : requests.entrySet()) {
+			try {
+				HttpResponse<String> response = entry.getValue().get();
+				String body = response.body();
+				
+				if(body.matches("v[0-9]+\\.[0-9]+\\.[0-9]+")) {
+					if(hurry) return entry.getKey();
+					
+					String[] numbers = body.substring(1).split("\\.");
+					Version version = new Version(Integer.parseInt(numbers[0]), Integer.parseInt(numbers[1]), Integer.parseInt(numbers[2]));
+					if(bestVersion == null || version.compareTo(bestVersion) > 0) {
+						bestAddress = entry.getKey();
+						bestVersion = version;
+					}
+				}
+			} catch(Exception e) {
+				continue;
+			}
+		}
+		
+		return bestAddress;
 	}
 	
 	/**
