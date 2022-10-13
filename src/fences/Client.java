@@ -164,7 +164,7 @@ public class Client {
 			case 400:
 				return new Result<ArrayList<Game>>(APIStatus.invalid);
 			case 403:
-				return new Result<ArrayList<Game>>(APIStatus.forbidden);
+				return new Result<ArrayList<Game>>(response.body() == "tournament" ? APIStatus.tournamentForbidden : APIStatus.forbidden);
 			case 404:
 				return new Result<ArrayList<Game>>(APIStatus.notFound);
 			case 500:
@@ -227,7 +227,7 @@ public class Client {
 			case 400:
 				return new Result<Game>(APIStatus.invalid);
 			case 403:
-				return new Result<Game>(APIStatus.forbidden);
+				return new Result<Game>(response.body() == "tournament" ? APIStatus.tournamentForbidden : APIStatus.forbidden);
 			case 404:
 				return new Result<Game>(APIStatus.notFound);
 			case 500:
@@ -272,7 +272,7 @@ public class Client {
 			case 400:
 				return new Result<Game>(APIStatus.invalid);
 			case 403:
-				return new Result<Game>(APIStatus.forbidden);
+				return new Result<Game>(response.body() == "tournament" ? APIStatus.tournamentForbidden : APIStatus.forbidden);
 			case 404:
 				return new Result<Game>(APIStatus.notFound);
 			case 500:
@@ -321,7 +321,7 @@ public class Client {
 			case 400:
 				return new Result<Player>(APIStatus.invalid);
 			case 403:
-				return new Result<Player>(APIStatus.forbidden);
+				return new Result<Player>(response.body() == "tournament" ? APIStatus.tournamentForbidden : APIStatus.forbidden);
 			case 404:
 				return new Result<Player>(APIStatus.notFound);
 			case 500:
@@ -367,7 +367,7 @@ public class Client {
 			case 400:
 				return new Result<Player>(APIStatus.invalid);
 			case 403:
-				return new Result<Player>(APIStatus.forbidden);
+				return new Result<Player>(response.body() == "tournament" ? APIStatus.tournamentForbidden : APIStatus.forbidden);
 			case 404:
 				return new Result<Player>(APIStatus.notFound);
 			case 500:
@@ -417,7 +417,7 @@ public class Client {
 			case 400:
 				return new Result<JoinResult>(APIStatus.invalid);
 			case 403:
-				return new Result<JoinResult>(APIStatus.forbidden);
+				return new Result<JoinResult>(response.body() == "tournament" ? APIStatus.tournamentForbidden : APIStatus.forbidden);
 			case 404:
 				return new Result<JoinResult>(APIStatus.notFound);
 			case 500:
@@ -467,7 +467,7 @@ public class Client {
 			case 400:
 				return new Result<JoinResult>(APIStatus.invalid);
 			case 403:
-				return new Result<JoinResult>(APIStatus.forbidden);
+				return new Result<JoinResult>(response.body() == "tournament" ? APIStatus.tournamentForbidden : APIStatus.forbidden);
 			case 404:
 				return new Result<JoinResult>(APIStatus.notFound);
 			case 500:
@@ -521,7 +521,7 @@ public class Client {
 			case 400:
 				return new Result<TurnResult>(APIStatus.invalid);
 			case 403:
-				return new Result<TurnResult>(APIStatus.forbidden);
+				return new Result<TurnResult>(response.body() == "tournament" ? APIStatus.tournamentForbidden : APIStatus.forbidden);
 			case 404:
 				return new Result<TurnResult>(APIStatus.notFound);
 			case 500:
@@ -588,7 +588,7 @@ public class Client {
 				return new Result<ArrayList<Game>>(APIStatus.invalid);
 			case 401:
 			case 403:
-				return new Result<ArrayList<Game>>(APIStatus.forbidden);
+				return new Result<ArrayList<Game>>(response.body() == "tournament" ? APIStatus.tournamentForbidden : APIStatus.forbidden);
 			case 404:
 				return new Result<ArrayList<Game>>(APIStatus.notFound);
 			case 500:
@@ -640,7 +640,7 @@ public class Client {
 				return new Result<Game>(APIStatus.invalid);
 			case 401:
 			case 403:
-				return new Result<Game>(APIStatus.forbidden);
+				return new Result<Game>(response.body() == "tournament" ? APIStatus.tournamentForbidden : APIStatus.forbidden);
 			case 404:
 				return new Result<Game>(APIStatus.notFound);
 			case 500:
@@ -679,7 +679,46 @@ public class Client {
 				return APIStatus.invalid;
 			case 401:
 			case 403:
-				return APIStatus.forbidden;
+				return response.body() == "tournament" ? APIStatus.tournamentForbidden : APIStatus.forbidden;
+			case 404:
+				return APIStatus.notFound;
+			case 500:
+				return APIStatus.serverError;
+			default:
+				return APIStatus.error;
+			}
+		} catch(IOException e) {
+			e.printStackTrace();
+			return APIStatus.error;
+		} catch(InterruptedException e) {
+			e.printStackTrace();
+			return APIStatus.error;
+		}
+	}
+	
+	/**
+	 * Requests the start of the game. Only valid in tournament mode.<br>
+	 * Requires administrator authentication.
+	 * @author Jakob Danckwerts
+	 * @see fences.AdminToken
+	 * @see fences.Client#createToken(String)
+	 */
+	public APIStatus startTournament(AdminToken token) {
+		try {
+			HttpRequest request = HttpRequest.newBuilder()
+					.uri(URI.create(this.parentURL + "/tournament/start?sessionID=" + token.sessionID + "&key=" + token.token))
+					.build();
+			HttpResponse<String> response = this.client.send(request, BodyHandlers.ofString());
+			
+			int code = response.statusCode();
+			switch(code) {
+			case 200:
+				return APIStatus.ok;
+			case 400:
+				return APIStatus.invalid;
+			case 401:
+			case 403:
+				return response.body() == "tournament" ? APIStatus.tournamentForbidden : APIStatus.forbidden;
 			case 404:
 				return APIStatus.notFound;
 			case 500:
@@ -753,7 +792,7 @@ public class Client {
 			case 400:
 				return new Result<AdminToken>(APIStatus.invalid);
 			case 403:
-				return new Result<AdminToken>(APIStatus.forbidden);
+				return new Result<AdminToken>(response.body() == "tournament" ? APIStatus.tournamentForbidden : APIStatus.forbidden);
 			case 404:
 				return new Result<AdminToken>(APIStatus.notFound);
 			case 500:

@@ -6,5 +6,5 @@ package fences;
  * @author Jakob Danckwerts
  */
 public enum APIStatus {
-	ok, invalid, forbidden, notFound, serverError, error
+	ok, invalid, forbidden, tournamentForbidden, notFound, serverError, error
 }
